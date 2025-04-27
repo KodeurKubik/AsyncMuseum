@@ -50,7 +50,7 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-nextjs-${{ hashFiles('**/bun.lockb') }}-
       - name: Install dependencies
-        run: bun install
+        run: bun install && bun pm trust --all
       - name: Build with Next.js
         run: bun run build
       - name: Upload artifact
