@@ -184,7 +184,7 @@ export default function Home() {
                   alt="Intérieur du musée"
                   className="aspect-square object-cover"
                   height="550"
-                  src="/asyncmuseum.png"
+                  src="/AsyncMuseum/asyncmuseum.png"
                   width="550"
                 />
               </motion.div>

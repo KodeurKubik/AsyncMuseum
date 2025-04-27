@@ -324,6 +324,6 @@ const dinos = [
 
 export default dinos.map((file) => ({
   rotation: [0, 0, 0],
-  url: `/images/${file}`,
+  url: `/AsyncMuseum/images/${file}`,
   name: file.split(".")[0],
 }));
