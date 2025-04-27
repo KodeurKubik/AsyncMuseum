@@ -1,7 +1,7 @@
 "use client";
 
 import * as THREE from "three";
-import { useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { Canvas, useFrame } from "@react-three/fiber";
 import {
   useCursor,
@@ -10,7 +10,7 @@ import {
   Text,
   Environment,
 } from "@react-three/drei";
-import { useRoute, useLocation } from "wouter";
+import { useSearchParams, useRouter } from "next/navigation";
 import { easing } from "maath";
 import allimages from "@/app/images";
 
@@ -74,26 +74,38 @@ function Frames({
 }) {
   const ref = useRef<THREE.Group>(null);
   const clicked = useRef<THREE.Object3D | null>(null);
-  const [, params] = useRoute("/visite-virtuelle/:id");
-  const [, setLocation] = useLocation();
+  const searchParams = useSearchParams();
+  const router = useRouter();
+  const imageId = searchParams.get("id");
+
+  const navigateTo = useCallback(
+    (id?: string) => {
+      if (id) {
+        router.push(`/visite-virtuelle?id=${id}`);
+      } else {
+        router.push("/visite-virtuelle");
+      }
+    },
+    [router],
+  );
 
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
-      if (params?.id) {
-        const currentId = parseInt(params.id);
+      if (imageId) {
+        const currentId = parseInt(imageId);
         if (!isNaN(currentId)) {
           // Move to previous image
           if (e.key === "ArrowLeft") {
-            const prevId = Math.max(0, currentId - 1);
+            const prevId = Math.max(1, currentId - 1);
             if (prevId !== currentId) {
-              setLocation(`/visite-virtuelle/${prevId}`);
+              navigateTo(prevId.toString());
             }
           }
           // Move to next image
           else if (e.key === "ArrowRight") {
-            const nextId = Math.min(images.length - 1, currentId + 1);
+            const nextId = Math.min(images.length, currentId + 1);
             if (nextId !== currentId) {
-              setLocation(`/visite-virtuelle/${nextId}`);
+              navigateTo(nextId.toString());
             }
           }
         }
@@ -104,11 +116,11 @@ function Frames({
     return () => {
       window.removeEventListener("keydown", handleKeyDown);
     };
-  }, [params?.id, images.length, setLocation]);
+  }, [imageId, images.length, navigateTo]);
 
   useEffect(() => {
-    clicked.current = params?.id
-      ? ref.current?.getObjectByName(params?.id) || null
+    clicked.current = imageId
+      ? ref.current?.getObjectByName(imageId) || null
       : null;
     if (clicked.current) {
       clicked.current.parent?.updateWorldMatrix(true, true);
@@ -128,18 +140,18 @@ function Frames({
   return (
     <group
       ref={ref}
-      onClick={(e) => (
-        e.stopPropagation(),
-        setLocation(
-          clicked.current === e.object
-            ? "/visite-virtuelle"
-            : "/visite-virtuelle/" + e.object.name,
-        )
-      )}
-      onPointerMissed={() => setLocation("/visite-virtuelle")}
+      onClick={(e) => {
+        e.stopPropagation();
+        if (clicked.current === e.object) {
+          navigateTo();
+        } else {
+          navigateTo(e.object.name);
+        }
+      }}
+      onPointerMissed={() => navigateTo()}
     >
       {images.map((props) => (
-        <Frame key={props.name} img={props} {...props} />
+        <Frame key={props.name} img={props} {...props} activeId={imageId} />
       ))}
     </group>
   );
@@ -147,6 +159,7 @@ function Frames({
 
 function Frame({
   img,
+  activeId,
   ...props
 }: {
   img: {
@@ -156,22 +169,23 @@ function Frame({
     name: string;
     index: number;
   };
+  activeId: string | null;
 }) {
   const image = useRef<THREE.Mesh>(null);
   const frame = useRef<THREE.Mesh>(null);
 
-  const [, params] = useRoute("/item/:id");
   const [hovered, hover] = useState(false);
   const [rnd] = useState(() => Math.random());
   const name = String(img.index);
-  const isActive = params?.id === name;
+  const isActive = activeId === name;
 
   useCursor(hovered);
 
   useFrame((state, dt) => {
     if (!image.current || !frame.current) return;
 
-    image.current.material.zoom =
+    // Add type assertions to fix TypeScript errors
+    (image.current.material as any).zoom =
       2 + Math.sin(rnd * 10000 + state.clock.elapsedTime / 3) / 2;
     easing.damp3(
       image.current.scale,
@@ -184,7 +198,7 @@ function Frame({
       dt,
     );
     easing.dampC(
-      frame.current.material.color,
+      (frame.current.material as any).color,
       hovered ? "orange" : "white",
       0.1,
       dt,

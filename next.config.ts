@@ -1,15 +1,7 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
-  async redirects() {
-    return [
-      {
-        source: "/",
-        destination: "/infos",
-        permanent: true,
-      },
-    ];
-  },
+  output: "export",
   typescript: {
     ignoreBuildErrors: true,
   },
