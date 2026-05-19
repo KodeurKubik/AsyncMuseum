@@ -1,6 +1,7 @@
 # AsyncMuseum
 
-Visitez une démo ici : https://kodeurkubik.github.io/AsyncMuseum/
+Visitez une démo ici : https://kodeurkubik.github.io/AsyncMuseum/ (offline désormais)
+Vous pouvez lancer le projet vous même avec `bun run dev` par exemple
 
 
 J'ai oublié de le mentionner mais les images viennent d'ici : https://huggingface.co/datasets/bigdata-pw/Dinosaurs
